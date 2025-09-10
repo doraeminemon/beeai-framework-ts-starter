@@ -6,6 +6,7 @@
     "sourceRoot": "src",
     "baseUrl": ".",
     "moduleResolution": "NodeNext",
+    "resolveJsonModule": true,
     "incremental": false,
     "moduleDetection": "auto",
     "types": ["node"],

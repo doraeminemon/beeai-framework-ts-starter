@@ -1,7 +1,6 @@
 import "dotenv/config.js";
 import { ReActAgent } from "beeai-framework/agents/react/agent";
 import { FrameworkError } from "beeai-framework/errors";
-import * as process from "node:process";
 import { PythonTool } from "beeai-framework/tools/python/python";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,11 +9,7 @@ import { LocalPythonStorage } from "beeai-framework/tools/python/storage";
 import { CustomTool } from "beeai-framework/tools/custom";
 import { createConsoleReader } from "./helpers/reader.js";
 import { ChatModel } from "beeai-framework/backend/chat";
-
-const codeInterpreterUrl = process.env.CODE_INTERPRETER_URL;
-if (!codeInterpreterUrl) {
-  throw new Error(`The 'CODE_INTERPRETER_URL' environment variable was not set! Terminating.`);
-}
+import env from "../env.json" with { type: "json" };
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -23,7 +18,7 @@ const agent = new ReActAgent({
   memory: new UnconstrainedMemory(),
   tools: [
     new PythonTool({
-      codeInterpreter: { url: codeInterpreterUrl },
+      codeInterpreter: { url: env.CODE_INTERPRETER_URL },
       storage: new LocalPythonStorage({
         interpreterWorkingDir: `${__dirname}/../tmp/code_interpreter_target`,
         localWorkingDir: `${__dirname}/../tmp/code_interpreter_source`,
@@ -31,8 +26,10 @@ const agent = new ReActAgent({
     }),
     await CustomTool.fromSourceCode(
       {
-        url: codeInterpreterUrl,
+        url: env.CODE_INTERPRETER_URL,
       },
+      // WTF: python code?
+      // TODO: rewrite in typescript
       `import requests
 
 def get_riddle() -> dict[str, str] | None:
