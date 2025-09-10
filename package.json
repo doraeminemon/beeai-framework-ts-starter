@@ -59,6 +59,9 @@
     "typescript": "~5.5.4",
     "typescript-eslint": "^8.6.0"
   },
+  "overrides": {
+    "form-data": "^4.0.3"
+  },
   "packageManager": "npm@10.7.0",
   "lint-staged": {
     "*.{ts,js}": "eslint --fix",

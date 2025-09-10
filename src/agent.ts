@@ -8,7 +8,7 @@ import { createConsoleReader } from "./helpers/reader.js";
 import { ChatModel } from "beeai-framework/backend/chat";
 
 const agent = new ReActAgent({
-  llm: await ChatModel.fromName(process.env.LLM_CHAT_MODEL_NAME as any),
+  llm: await ChatModel.fromName("ollama"),
   memory: new TokenMemory(),
   tools: [new OpenMeteoTool(), new DuckDuckGoSearchTool()],
 });
@@ -33,8 +33,8 @@ for await (const { prompt } of reader) {
         });
       });
 
-    reader.write(`Agent 🤖 :`, response.result.text);
+    reader.write("Agent 🤖 :", response.result.text);
   } catch (error) {
-    reader.write(`Error`, FrameworkError.ensure(error).dump());
+    reader.write("Error", FrameworkError.ensure(error).dump());
   }
 }
