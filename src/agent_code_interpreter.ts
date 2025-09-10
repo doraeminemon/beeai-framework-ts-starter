@@ -19,7 +19,7 @@ if (!codeInterpreterUrl) {
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const agent = new ReActAgent({
-  llm: await ChatModel.fromName(process.env.LLM_CHAT_MODEL_NAME as any),
+  llm: await ChatModel.fromName("ollama"),
   memory: new UnconstrainedMemory(),
   tools: [
     new PythonTool({
@@ -79,8 +79,8 @@ for await (const { prompt } of reader) {
         });
       });
 
-    reader.write(`Agent 🤖 : `, response.result.text);
+    reader.write("Agent 🤖 : ", response.result.text);
   } catch (error) {
-    reader.write(`Error`, FrameworkError.ensure(error).dump());
+    reader.write("Error", FrameworkError.ensure(error).dump());
   }
 }

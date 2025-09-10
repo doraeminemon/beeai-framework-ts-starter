@@ -8,7 +8,6 @@ import { LLMTool } from "beeai-framework/tools/llm";
 import { DuckDuckGoSearchTool } from "beeai-framework/tools/search/duckDuckGoSearch";
 import { Workflow } from "beeai-framework/workflows/workflow";
 import { ChatModel } from "beeai-framework/backend/chat";
-import process from "node:process";
 import { SystemMessage, UserMessage } from "beeai-framework/backend/message";
 
 const schema = z.object({
@@ -26,7 +25,7 @@ const workflow = new Workflow({
   outputSchema: schema.required({ output: true }),
 })
   .addStep("preprocess", async (state) => {
-    const model = await ChatModel.fromName(process.env.LLM_CHAT_MODEL_NAME as any);
+    const model = await ChatModel.fromName("ollama");
     const { object } = await model.createStructure({
       messages: [
         new UserMessage(
@@ -63,7 +62,7 @@ const workflow = new Workflow({
     state.topic = object.topic;
   })
   .addStrictStep("planner", schema.required({ topic: true }), async (state) => {
-    const llm = await ChatModel.fromName(process.env.LLM_CHAT_MODEL_NAME as any);
+    const llm = await ChatModel.fromName("ollama");
     const agent = new ReActAgent({
       llm,
       memory: new UnconstrainedMemory(),
@@ -72,41 +71,41 @@ const workflow = new Workflow({
 
     const { result } = await agent.run({
       prompt: [
-        `You are a Content Planner. Your task is to write a content plan for "${state.topic}" topic in Markdown format.`,
-        ``,
-        `# Objectives`,
-        `1. Prioritize the latest trends, key players, and noteworthy news.`,
-        `2. Identify the target audience, considering their interests and pain points.`,
-        `3. Develop a detailed content outline including introduction, key points, and a call to action.`,
-        `4. Include SEO keywords and relevant sources.`,
-        ``,
+        'You are a Content Planner. Your task is to write a content plan for "${state.topic}" topic in Markdown format.',
+        "",
+        "# Objectives",
+        "1. Prioritize the latest trends, key players, and noteworthy news.",
+        "2. Identify the target audience, considering their interests and pain points.",
+        "3. Develop a detailed content outline including introduction, key points, and a call to action.",
+        "4. Include SEO keywords and relevant sources.",
+        "",
         ...[!isEmpty(state.notes) && ["# Notes", ...state.notes, ""]],
-        `Provide a structured output that covers the mentioned sections.`,
+        "Provide a structured output that covers the mentioned sections.",
       ].join("\n"),
     });
 
     state.plan = result.text;
   })
   .addStrictStep("writer", schema.required({ plan: true }), async (state) => {
-    const model = await ChatModel.fromName(process.env.LLM_CHAT_MODEL_NAME as any);
+    const model = await ChatModel.fromName("ollama");
     const output = await model.create({
       messages: [
         new SystemMessage(
           [
-            `You are a Content Writer. Your task is to write a compelling blog post based on the provided context.`,
-            ``,
-            `# Context`,
-            `${state.plan}`,
-            ``,
-            `# Objectives`,
-            `- An engaging introduction`,
-            `- Insightful body paragraphs (2-3 per section)`,
-            `- Properly named sections/subtitles`,
-            `- A summarizing conclusion`,
-            `- Format: Markdown`,
-            ``,
+            "You are a Content Writer. Your task is to write a compelling blog post based on the provided context.",
+            "",
+            "# Context",
+            "${state.plan}",
+            "",
+            "# Objectives",
+            "- An engaging introduction",
+            "- Insightful body paragraphs (2-3 per section)",
+            "- Properly named sections/subtitles",
+            "- A summarizing conclusion",
+            "- Format: Markdown",
+            "",
             ...[!isEmpty(state.notes) && ["# Notes", ...state.notes, ""]],
-            `Ensure the content flows naturally, incorporates SEO keywords, and is well-structured.`,
+            "Ensure the content flows naturally, incorporates SEO keywords, and is well-structured.",
           ].join("\n"),
         ),
       ],
@@ -115,22 +114,22 @@ const workflow = new Workflow({
     state.draft = output.getTextContent();
   })
   .addStrictStep("editor", schema.required({ draft: true }), async (state) => {
-    const model = await ChatModel.fromName(process.env.LLM_CHAT_MODEL_NAME as any);
+    const model = await ChatModel.fromName("ollama");
     const output = await model.create({
       messages: [
         new SystemMessage(
           [
-            `You are an Editor. Your task is to transform the following draft blog post to a final version.`,
-            ``,
-            `# Draft`,
-            `${state.draft}`,
-            ``,
-            `# Objectives`,
-            `- Fix Grammatical errors`,
-            `- Journalistic best practices`,
-            ``,
+            "You are an Editor. Your task is to transform the following draft blog post to a final version.",
+            "",
+            "# Draft",
+            "${state.draft}",
+            "",
+            "# Objectives",
+            "- Fix Grammatical errors",
+            "- Journalistic best practices",
+            "",
             ...[!isEmpty(state.notes) && ["# Notes", ...state.notes, ""]],
-            ``,
+            "",
             `IMPORTANT: The final version must not contain any editor's comments.`,
           ].join("\n"),
         ),
@@ -155,8 +154,8 @@ for await (const { prompt } of reader) {
       topic: lastResult?.topic,
     })
     .observe((emitter) => {
-      emitter.on("start", ({ step, run }) => {
-        reader.write(`-> ▶️ ${step}`, JSON.stringify(run.state));
+      emitter.on("start", ({ run }) => {
+        reader.write("-> ▶️ ${step}", JSON.stringify(run.state));
       });
     });
 
