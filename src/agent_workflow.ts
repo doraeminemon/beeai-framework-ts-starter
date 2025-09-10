@@ -13,7 +13,6 @@ import { SystemMessage, UserMessage } from "beeai-framework/backend/message";
 const schema = z.object({
   input: z.string(),
   output: z.string().optional(),
-
   topic: z.string().optional(),
   notes: z.array(z.string()).default([]),
   plan: z.string().optional(),
@@ -95,7 +94,7 @@ const workflow = new Workflow({
             "You are a Content Writer. Your task is to write a compelling blog post based on the provided context.",
             "",
             "# Context",
-            "${state.plan}",
+            `${state.plan}`,
             "",
             "# Objectives",
             "- An engaging introduction",
@@ -122,7 +121,7 @@ const workflow = new Workflow({
             "You are an Editor. Your task is to transform the following draft blog post to a final version.",
             "",
             "# Draft",
-            "${state.draft}",
+            `${state.draft}`,
             "",
             "# Objectives",
             "- Fix Grammatical errors",
@@ -142,7 +141,7 @@ const workflow = new Workflow({
 let lastResult = {} as Workflow.output<typeof workflow>;
 const reader = createConsoleReader();
 reader.write(
-  "ℹ️ ",
+  "ℹ ",
   "I am a content creator agent. Please give me a topic for which I will write a blog post..",
 );
 
@@ -154,8 +153,8 @@ for await (const { prompt } of reader) {
       topic: lastResult?.topic,
     })
     .observe((emitter) => {
-      emitter.on("start", ({ run }) => {
-        reader.write("-> ▶️ ${step}", JSON.stringify(run.state));
+      emitter.on("start", ({ step, run }) => {
+        reader.write(`-> ▶️ ${step}`, JSON.stringify(run.state));
       });
     });
 
